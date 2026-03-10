@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>生理のお悩み別 足ツボ診断</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fade-in 0.5s ease-out;
+        }
+        .checkbox-item {
+            transition: all 0.2s;
+        }
+        .checkbox-item:hover {
+            transform: translateY(-2px);
+        }
+        .selected {
+            border-color: #ec4899;
+            background-color: #fdf2f8;
+        }
+        .selected-purple {
+            border-color: #a855f7;
+            background-color: #faf5ff;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-pink-50 via-rose-50 to-purple-50 min-h-screen p-4">
+    <div class="max-w-4xl mx-auto">
+        <!-- メインカード -->
+        <div id="mainCard" class="bg-white rounded-2xl shadow-xl p-6 md:p-8 mb-6">
+            <div class="text-center mb-8">
+                <div class="text-5xl mb-3">🌸</div>
+                <h1 class="text-3xl md:text-4xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent mb-2">
+                    生理のお悩み別<br>足ツボ診断
+                </h1>
+                <p class="text-gray-600">あなたの症状から最適な足ツボとケア方法をご提案します</p>
+            </div>
+
+            <!-- 生理中の症状 -->
+            <div class="mb-8">
+                <div class="flex items-center mb-4">
+                    <div class="bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-bold">1</div>
+                    <h2 class="text-xl font-bold text-gray-800">生理中の症状</h2>
+                </div>
+                <div id="menstrualSymptoms" class="grid gap-3 pl-11"></div>
+            </div>
+
+            <!-- 体調の変化・PMS症状 -->
+            <div class="mb-8">
+                <div class="flex items-center mb-4">
+                    <div class="bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-full w-8 h-8 flex items-center justify-center mr-3 font-bold">2</div>
+                    <h2 class="text-xl font-bold text-gray-800">体調の変化・PMS症状</h2>
+                </div>
+                <div id="physicalSymptoms" class="grid gap-3 pl-11"></div>
+            </div>
+
+            <!-- 診断ボタン -->
+            <button id="diagnoseBtn" onclick="diagnose()" disabled
+                class="w-full bg-gradient-to-r from-pink-500 via-rose-500 to-purple-500 text-white py-4 rounded-xl font-bold text-lg shadow-lg hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                あなた専用のケアプランを見る
+            </button>
+        </div>
+
+        <!-- 結果表示エリア -->
+        <div id="resultArea" class="hidden"></div>
+    </div>
+
+    <script>
+        const selectedSymptoms = {
+            menstrual: [],
+            physical: []
+        };
+
+        const menstrualSymptoms = [
+            { id: 'pain', label: '生理痛がひどい', concerns: ['子宮の冷え', '血行不良', '気滞'] },
+            { id: 'heavy', label: '経血量が多い', concerns: ['気虚', 'ホルモンバランス'] },
+            { id: 'light', label: '経血量が少ない', concerns: ['血虚', '冷え'] },
+            { id: 'irregular', label: '生理不順', concerns: ['ホルモンバランス', 'ストレス'] },
+            { id: 'clot', label: '塊が出る', concerns: ['血瘀', '子宮の冷え'] },
+            { id: 'long', label: '生理が長引く', concerns: ['気虚', '腎虚'] }
+        ];
+
+        const physicalSymptoms = [
+            { id: 'pms', label: 'PMS(イライラ・情緒不安定)', concerns: ['肝気鬱結', 'ストレス'] },
+            { id: 'bloat', label: 'むくみ・膨満感', concerns: ['脾虚', '水滞'] },
+            { id: 'tired', label: '疲れやすい・だるい', concerns: ['気虚', '腎虚'] },
+            { id: 'cold', label: '冷えがひどい', concerns: ['陽虚', '血行不良'] },
+            { id: 'headache', label: '頭痛', concerns: ['肝気鬱結', '気滞'] },
+            { id: 'breast', label: '胸の張り・痛み', concerns: ['肝気鬱結', '気滞'] },
+            { id: 'constipation', label: '便秘になりやすい', concerns: ['気滞', '腸の乾燥'] },
+            { id: 'sleep', label: '眠れない・眠りが浅い', concerns: ['心腎不交', 'ストレス'] }
+        ];
+
+        const recommendationMap = {
+            '子宮の冷え': {
+                tsubo: ['足裏の真ん中より少し上', '親指の付け根'],
+                location: '足裏の真ん中より少し上のくぼみ / 親指の付け根あたり',
+                care: 'お腹や腰を温める。足湯を毎日15分やると効果的',
+                food: '生姜、シナモン、よもぎ茶、黒豆茶',
+                tips: '冷たい飲み物は避けて、温かいものを飲もう',
+                color: 'from-orange-50 to-red-50'
+            },
+            '血行不良': {
+                tsubo: ['足裏の真ん中', '親指の下のふくらみ'],
+                location: '足裏の真ん中やや上のくぼみ / 親指の下の膨らんだ部分',
+                care: '毎日20分歩く、ストレッチをする',
+                food: '青魚、納豆、玉ねぎ、黒酢',
+                tips: 'お風呂で足首をぐるぐる回すと血の巡りが良くなるよ',
+                color: 'from-blue-50 to-purple-50'
+            },
+            '気滞': {
+                tsubo: ['足裏の真ん中', '土踏まず'],
+                location: '足裏の真ん中のくぼみ / 土踏まずの真ん中あたり',
+                care: '深呼吸をする、好きな音楽を聴く、アロマを焚く',
+                food: 'ジャスミン茶、ミント、みかんやレモン、セロリ',
+                tips: 'イライラしたら深呼吸を5回。リラックスする時間を作ろう',
+                color: 'from-green-50 to-teal-50'
+            },
+            '気虚': {
+                tsubo: ['親指の付け根下', '土踏まず'],
+                location: '親指の付け根の下あたり / 土踏まずの真ん中',
+                care: '7〜8時間しっかり寝る、無理をしない',
+                food: '山芋、かぼちゃ、鶏肉、お餅',
+                tips: '朝ごはんは必ず食べて、温かいものを選ぼう',
+                color: 'from-yellow-50 to-amber-50'
+            },
+            'ホルモンバランス': {
+                tsubo: ['足裏の真ん中', 'かかとの内側'],
+                location: '足裏の真ん中のくぼみ / かかとの内側あたり',
+                care: '毎日同じ時間に寝て起きる、軽い運動をする',
+                food: '豆腐や納豆、ナッツ、アボカド',
+                tips: '夜更かしはホルモンバランスを崩すから、早く寝よう',
+                color: 'from-pink-50 to-rose-50'
+            },
+            'ストレス': {
+                tsubo: ['足裏の真ん中', '土踏まずの真ん中'],
+                location: '足裏の真ん中やや上のくぼみ / 土踏まずの真ん中あたり',
+                care: '好きなことをする時間を作る、ヨガや瞑想',
+                food: 'カモミールティー、セロリ、ハーブティー',
+                tips: '1日15分、スマホを見ないでぼーっとする時間を作ろう',
+                color: 'from-indigo-50 to-purple-50'
+            },
+            '血虚': {
+                tsubo: ['親指の腹', '足裏全体'],
+                location: '親指の腹の部分 / 足裏全体をゆっくり押す',
+                care: '鉄分が多い食べ物を食べる',
+                food: 'レバー、ほうれん草、プルーン、黒ごま',
+                tips: 'ビタミンCと一緒に鉄分を摂ると吸収が良くなるよ',
+                color: 'from-red-50 to-pink-50'
+            },
+            '冷え': {
+                tsubo: ['足裏の真ん中', 'かかと'],
+                location: '足裏の真ん中のくぼみ / かかと全体',
+                care: '靴下を重ねて履く、足湯をする',
+                food: '生姜湯、ほうじ茶、にんじんやごぼう',
+                tips: '寝る前に40度のお湯で15分足湯をすると効果的',
+                color: 'from-orange-50 to-yellow-50'
+            },
+            '血瘀': {
+                tsubo: ['足裏の真ん中', '土踏まず'],
+                location: '足裏の真ん中のくぼみ / 土踏まず全体',
+                care: '軽い運動、マッサージ',
+                food: '黒きくらげ、玉ねぎ、青魚',
+                tips: 'ゆっくりストレッチして血の流れを良くしよう',
+                color: 'from-purple-50 to-pink-50'
+            },
+            '腎虚': {
+                tsubo: ['足裏の真ん中', 'かかとの内側'],
+                location: '足裏の真ん中のくぼみ / かかとの内側のくぼみ',
+                care: 'たっぷり休む、夜10時には寝る',
+                food: '黒豆、黒ごま、くるみ、山芋、わかめ',
+                tips: '夜10時までに寝ると体の回復力がアップするよ',
+                color: 'from-gray-50 to-slate-50'
+            },
+            '脾虚': {
+                tsubo: ['親指の付け根', '土踏まずの前'],
+                location: '親指の付け根の骨の下あたり / 土踏まずの前の方',
+                care: '消化に良いものを食べる、よく噛んで食べる',
+                food: 'お粥、山芋、かぼちゃ、さつまいも',
+                tips: '朝ごはんは温かいものを食べて胃腸を元気にしよう',
+                color: 'from-amber-50 to-orange-50'
+            },
+            '水滞': {
+                tsubo: ['土踏まず', 'かかとの下'],
+                location: '土踏まずの真ん中あたり / かかとの下の方',
+                care: '軽く運動する、塩分を控える',
+                food: 'あずき、とうもろこし、きゅうり',
+                tips: '夕方以降はお水を飲みすぎないようにしよう',
+                color: 'from-cyan-50 to-blue-50'
+            },
+            '肝気鬱結': {
+                tsubo: ['足裏の真ん中', '親指の下'],
+                location: '足裏の真ん中のくぼみ / 親指の下のふくらみ',
+                care: 'ストレス発散、深呼吸、好きなことをする',
+                food: 'ジャスミン茶、ミント、セロリ',
+                tips: '嫌なことがあったら、信頼できる人に話してみよう',
+                color: 'from-green-50 to-emerald-50'
+            },
+            '陽虚': {
+                tsubo: ['足裏全体', 'かかと'],
+                location: '足裏全体を温めるようにマッサージ / かかと全体',
+                care: '体を冷やさない、温かくする',
+                food: 'シナモン、生姜、にんにく、えび',
+                tips: 'お腹と腰を常に温めることを意識しよう',
+                color: 'from-red-50 to-orange-50'
+            },
+            '腸の乾燥': {
+                tsubo: ['土踏まず', '足裏の真ん中'],
+                location: '土踏まずを優しくマッサージ / 足裏の真ん中',
+                care: '水をしっかり飲む、食物繊維を摂る',
+                food: 'はちみつ、プルーン、バナナ、ヨーグルト',
+                tips: '朝起きたら白湯をコップ1杯飲もう',
+                color: 'from-yellow-50 to-lime-50'
+            },
+            '心腎不交': {
+                tsubo: ['足裏の真ん中', 'かかとの内側'],
+                location: '足裏の真ん中のくぼみ / かかとの内側',
+                care: '寝る前はスマホを見ない、リラックスする',
+                food: 'ゆり根、なつめ',
+                tips: '寝る1時間前からスマホやテレビを見ないようにしよう',
+                color: 'from-indigo-50 to-blue-50'
+            }
+        };
+
+        function createCheckboxItem(symptom, category) {
+            const div = document.createElement('div');
+            div.className = `checkbox-item flex items-center p-4 rounded-lg border-2 border-gray-200 cursor-pointer ${category === 'physical' ? 'hover:border-purple-300' : 'hover:border-pink-300'}`;
+            div.onclick = () => toggleSymptom(symptom.id, category, div);
+            
+            div.innerHTML = `
+                <svg class="mr-3 flex-shrink-0 text-gray-300" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                </svg>
+                <span class="text-left font-medium text-gray-700">${symptom.label}</span>
+            `;
+            
+            return div;
+        }
+
+        function toggleSymptom(id, category, element) {
+            const index = selectedSymptoms[category].indexOf(id);
+            
+            if (index > -1) {
+                selectedSymptoms[category].splice(index, 1);
+                element.classList.remove(category === 'physical' ? 'selected-purple' : 'selected');
+                element.querySelector('svg').innerHTML = '<circle cx="12" cy="12" r="10"></circle>';
+                element.querySelector('svg').classList.remove(category === 'physical' ? 'text-purple-500' : 'text-pink-500');
+                element.querySelector('svg').classList.add('text-gray-300');
+            } else {
+                selectedSymptoms[category].push(id);
+                element.classList.add(category === 'physical' ? 'selected-purple' : 'selected');
+                element.querySelector('svg').innerHTML = '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>';
+                element.querySelector('svg').classList.remove('text-gray-300');
+                element.querySelector('svg').classList.add(category === 'physical' ? 'text-purple-500' : 'text-pink-500');
+            }
+            
+            updateButton();
+        }
+
+        function updateButton() {
+            const btn = document.getElementById('diagnoseBtn');
+            const hasSelection = selectedSymptoms.menstrual.length > 0 || selectedSymptoms.physical.length > 0;
+            btn.disabled = !hasSelection;
+        }
+
+        function diagnose() {
+            const allSelected = [...selectedSymptoms.menstrual, ...selectedSymptoms.physical];
+            const allSymptoms = [...menstrualSymptoms, ...physicalSymptoms];
+            
+            const concernsCount = {};
+            allSelected.forEach(id => {
+                const symptom = allSymptoms.find(s => s.id === id);
+                symptom?.concerns.forEach(concern => {
+                    concernsCount[concern] = (concernsCount[concern] || 0) + 1;
+                });
+            });
+
+            const topConcerns = Object.entries(concernsCount)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 3)
+                .map(([concern]) => concern);
+
+            showResults(topConcerns);
+        }
+
+        function showResults(concerns) {
+            const resultArea = document.getElementById('resultArea');
+            resultArea.className = 'bg-white rounded-2xl shadow-xl p-6 md:p-8 animate-fade-in';
+            
+            let html = `
+                <h2 class="text-2xl font-bold text-gray-800 mb-2 text-center">あなた専用のケアプラン</h2>
+                <p class="text-center text-gray-600 mb-6">東洋医学の観点からアプローチします</p>
+                
+                <div class="mb-6 p-4 bg-gradient-to-r from-pink-50 to-purple-50 border-l-4 border-pink-400 rounded-lg">
+                    <div class="flex items-start">
+                        <svg class="text-pink-600 mr-2 mt-1 flex-shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        <div>
+                            <p class="font-semibold text-pink-800 mb-1">あなたの体質タイプ</p>
+                            <p class="text-pink-700 font-bold text-lg">${concerns.join(' + ')}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            concerns.forEach((concern, index) => {
+                const rec = recommendationMap[concern];
+                if (rec) {
+                    html += `
+                        <div class="mb-6 p-6 bg-gradient-to-r ${rec.color} rounded-xl border border-gray-200 shadow-md">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4 pb-3 border-b-2 border-gray-200">
+                                ${index + 1}. ${concern}への対策
+                            </h3>
+                            
+                            <div class="space-y-4">
+                                <div class="bg-white p-4 rounded-lg shadow-sm">
+                                    <p class="font-bold text-purple-700 mb-2 text-lg">🦶 押す場所（足裏）</p>
+                                    <p class="text-gray-800 font-semibold mb-2">${rec.tsubo.join('、')}</p>
+                                    <p class="text-sm text-gray-600 bg-gray-50 p-3 rounded mt-2">
+                                        <span class="font-semibold">📍 詳しい場所:</span> ${rec.location}
+                                    </p>
+                                </div>
+                                
+                                <div class="bg-white p-4 rounded-lg shadow-sm">
+                                    <p class="font-bold text-blue-700 mb-2">💆‍♀️ セルフケア</p>
+                                    <p class="text-gray-700">${rec.care}</p>
+                                </div>
+                                
+                                <div class="bg-white p-4 rounded-lg shadow-sm">
+                                    <p class="font-bold text-green-700 mb-2">🥗 おすすめ食材</p>
+                                    <p class="text-gray-700">${rec.food}</p>
+                                </div>
+                                
+                                <div class="bg-gradient-to-r from-amber-50 to-yellow-50 p-4 rounded-lg border-l-4 border-amber-400">
+                                    <p class="font-bold text-amber-800 mb-2">💡 今日から実践</p>
+                                    <p class="text-amber-900">${rec.tips}</p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+            });
+
+            html += `
+                <div class="mt-8 p-6 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-xl border-2 border-indigo-200">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                        <span class="text-2xl mr-2">✨</span>
+                        足裏の押し方
+                    </h3>
+                    <div class="grid md:grid-cols-2 gap-4 text-gray-700">
+                        <div class="bg-white p-4 rounded-lg">
+                            <p class="font-semibold text-indigo-700 mb-2">⏱ 時間</p>
+                            <p class="text-sm">1つの場所を3〜5秒かけてゆっくり押す</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg">
+                            <p class="font-semibold text-indigo-700 mb-2">💪 強さ</p>
+                            <p class="text-sm">痛気持ちいいくらい（痛すぎはダメ）</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg">
+                            <p class="font-semibold text-indigo-700 mb-2">🔄 回数</p>
+                            <p class="text-sm">1日2〜3回、朝と夜にやろう</p>
+                        </div>
+                        <div class="bg-white p-4 rounded-lg">
+                            <p class="font-semibold text-indigo-700 mb-2">🛁 タイミング</p>
+                            <p class="text-sm">お風呂上がりの体が温まってる時がベスト</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 p-5 bg-rose-50 border-l-4 border-rose-400 rounded-lg">
+                    <p class="text-sm text-rose-900 leading-relaxed">
+                        <strong class="text-rose-800">※ 注意:</strong><br>
+                        この診断は一般的な情報です。すごく痛い時、良くならない時は、必ず病院に行ってね。妊娠中の人は、押す前にお医者さんに相談してね。
+                    </p>
+                </div>
+            `;
+
+            resultArea.innerHTML = html;
+            resultArea.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 初期化
+        window.onload = function() {
+            const menstrualContainer = document.getElementById('menstrualSymptoms');
+            const physicalContainer = document.getElementById('physicalSymptoms');
+            
+            menstrualSymptoms.forEach(symptom => {
+                menstrualContainer.appendChild(createCheckboxItem(symptom, 'menstrual'));
+            });
+            
+            physicalSymptoms.forEach(symptom => {
+                physicalContainer.appendChild(createCheckboxItem(symptom, 'physical'));
+            });
+        };
+    </script>
+</body>
+</html>
